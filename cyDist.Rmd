@@ -14,7 +14,7 @@ The following script uses Landsat 5,7, and 8 NDVI images to compute cyclone dist
 
 Step 1: Import data layers to GEE
 
-```{js}
+```{js eval=FALSE}
 // Total sundarbans area
 var aoi = ee.FeatureCollection("users/itzhasanshamim/Sundarban2018/Sundarban_Old_NatHaz");
 // Classified image 
@@ -37,11 +37,11 @@ var l7col = ee.ImageCollection('LANDSAT/LE7_L1T_32DAY_NDVI');   // L7 NDVI
 var l8col = ee.ImageCollection('LANDSAT/LC8_L1T_32DAY_NDVI');   // L8 NDVI
 ```
 
-## Step 2: Make data variable for filtering the image collection
+Step 2: Make data variable for filtering the image collection
 
 Images between Jan-March will be used for this analysis. However, for the cyclone event of 2006 and 2008, this range is extened upto May to produce relevant image mosaic.
 
-```{js}
+```{js eval=FALSE}
 var y88 = ee.Filter.date('1988-01-01','1988-03-31');
 var y89 = ee.Filter.date('1989-01-01','1989-03-31'); 
 var y90 = ee.Filter.date('1990-01-01','1990-03-31');
@@ -78,7 +78,7 @@ As we want to compute forest area disturbances by multiple cyclones. We will cre
 
 Function 1: Filter function [Make functions to filter and mask]
 
-```{js}
+```{js eval=FALSE}
 var filterFun = function (imageCollection, dateRange){
   var fCol = imageCollection.filter(dateRange)
               // Get year and add it to the image property
@@ -99,7 +99,7 @@ var filterFun = function (imageCollection, dateRange){
 
 Function 2: function to computer pre and post event disturbances [using thersholding]
 
-```{js}
+```{js eval=FALSE}
 var lossFun = function (preImage, postImage){
   var difference = preImage.subtract(postImage);   // Subtract preImage from postImage
   var diminished= difference.gt(0.1);              // NDVI changes more than 0.1
@@ -121,7 +121,7 @@ var lossFun = function (preImage, postImage){
 
 Function 3: Calculate disturbed area, and area before disturbance
 
-```{js}
+```{js eval=FALSE}
 var areaFun = function(image){
   var x = image.reduceRegion(
       {
@@ -136,7 +136,7 @@ var areaFun = function(image){
 
 Funtion 4: Calculate for each events
 
-```{js}
+```{js eval=FALSE}
 var eventFun = function(imageCol, preYear, postYear){
   var pre = filterFun(imageCol, preYear); 
   var post = filterFun(imageCol, postYear);
@@ -164,7 +164,7 @@ var eventFun = function(imageCol, preYear, postYear){
 Error check : START
 
 This code chuck was used to recheck the area calculation.
-```{js}
+```{js eval=FALSE}
 // Estimation of pre and post area 
 var pixelArea = ee.Image.pixelArea().divide(1000000);
 var preEvent_unmasked = pre.multiply(pixelArea);
@@ -190,7 +190,7 @@ var ErrorCheck_Stats = getAreas.reduceRegion(
 
 Error check : END
 
-```{js}
+```{js eval=FALSE}
   // Estimate total forest area from the classified image 
   var totalF1 = sfc.select("classification").eq(0);
   var totalF2 = totalF1.multiply(area);
@@ -217,7 +217,7 @@ Step 4: Apply the functions to analyze the filtered image collection
 
 Create separate variables from function outputs. 
 
-```{js}
+```{js eval=FALSE}
 // C88
 var c88 = eventFun(l5col,y88, y89); // Landsat 5
 
@@ -284,7 +284,7 @@ var c16 = eventFun(l8col,y16, y17); // Landsat 8
 
 Make a Dictionary of lost NDVI per cyclone
 
-```{js}
+```{js eval=FALSE}
 var dict = ee.Dictionary({
 c88: c88.lossArea.get('Lost_NDVI'),
 c89: c89.lossArea.get('Lost_NDVI'),
